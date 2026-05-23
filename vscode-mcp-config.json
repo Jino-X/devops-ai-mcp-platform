@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "devops-ai": {
+      "command": "node",
+      "args": [
+        "/Users/apple/Documents/Projects/devops-ai-platform/apps/mcp-server/dist/index.js"
+      ],
+      "env": {
+        "API_URL": "http://localhost:4000",
+        "MCP_API_TOKEN": "REPLACE_WITH_YOUR_JWT_TOKEN_FROM_LOGIN",
+        "MCP_LOG_LEVEL": "info",
+        "MCP_LOG_DIR": "/tmp/devops-ai-mcp"
+      }
+    }
+  }
+}

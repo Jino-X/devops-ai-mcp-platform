@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  admin
+  developer
+  viewer
+  service
+}
+
+enum AuditAction {
+  create
+  read
+  update
+  delete
+  login
+  logout
+  execute
+  deploy
+  restart
+}
+
+enum AuditResource {
+  user
+  session
+  github_repo
+  github_issue
+  github_pr
+  jira_issue
+  mcp_tool
+  deployment
+  service
+  settings
+}
+
+enum MCPExecutionStatus {
+  pending
+  running
+  success
+  failed
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  role         UserRole  @default(developer)
+  avatarUrl    String?
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions             Session[]
+  auditLogs            AuditLog[]
+  mcpToolLogs          MCPToolLog[]
+  githubIntegration    GitHubIntegration?
+  jiraIntegration      JiraIntegration?
+
+  @@index([email])
+  @@index([role])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String   @unique
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([refreshToken])
+}
+
+model AuditLog {
+  id           String        @id @default(cuid())
+  userId       String
+  userEmail    String
+  action       AuditAction
+  resource     AuditResource
+  resourceId   String?
+  details      Json?
+  ipAddress    String?
+  userAgent    String?
+  status       String
+  errorMessage String?
+  createdAt    DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+}
+
+model MCPToolLog {
+  id          String             @id @default(cuid())
+  toolName    String
+  userId      String
+  userEmail   String
+  input       Json
+  output      Json?
+  status      MCPExecutionStatus
+  duration    Int
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime           @default(now())
+  completedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([toolName])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model GitHubIntegration {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  accessToken String
+  tokenType   String   @default("personal")
+  scope       String[]
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model JiraIntegration {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  host              String
+  email             String
+  apiToken          String
+  defaultProjectKey String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AppSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
