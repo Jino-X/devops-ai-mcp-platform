@@ -37,8 +37,8 @@ devops-ai-platform/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/devops-ai-platform.git
-cd devops-ai-platform
+git clone https://github.com/Jino-X/devops-ai-mcp-platform.git
+cd devops-ai-mcp-platform
 
 # Install dependencies
 npm install
